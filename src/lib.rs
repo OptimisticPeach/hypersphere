@@ -1,10 +1,11 @@
 use crate::rotation::Rot4;
-use glam::{Vec3, Vec3A, Vec4};
+use glam::{Vec3A, Vec4};
 
 mod even_permutations;
 mod gram_schmidt;
 pub mod projection;
 pub mod rotation;
+pub mod camera;
 
 pub fn make_points() -> Vec<Vec4> {
     let mut points = Vec::new();
@@ -98,10 +99,10 @@ pub fn sphere_at(spherical_radius: f32, at: Vec4, points: &[Vec3A]) -> Vec<Vec4>
         .collect()
 }
 
-pub fn points_at(spherical_radius: f32, at: Vec4, points: &[Vec3A], radii: &[f32]) -> Vec<Vec4> {
+pub fn mesh_at(spherical_radius: f32, at: Vec4, points: &[Vec3A], normals: &[Vec3A], radii: &[f32]) -> (Vec<Vec4>, Vec<Vec4>) {
     let at = at.normalize();
     let rotation = Rot4::from_rotation_arc(Vec4::W, at);
-    points
+    let points = points
         .iter()
         .copied()
         .zip(radii.iter().copied())
@@ -111,5 +112,18 @@ pub fn points_at(spherical_radius: f32, at: Vec4, points: &[Vec3A], radii: &[f32
             let center = at * center_scl;
             rotation.mul_vec4((pos * size).extend(0.0)) + center
         })
-        .collect()
+        .collect::<Vec<_>>();
+
+    let normals = normals
+        .iter()
+        .copied()
+        .zip(points.iter().copied())
+        .map(|(normal, pos_4d)| {
+            let rotated = rotation.mul_vec4(normal.extend(0.0));
+            let gram_schmidt = rotated - rotated.dot(pos_4d) * pos_4d;
+            gram_schmidt.normalize()
+        })
+        .collect::<Vec<_>>();
+
+    (points, normals)
 }

@@ -13,6 +13,14 @@ pub struct Projection {
 }
 
 impl Projection {
+    pub const UNIT_PROJECTION: Projection = Projection {
+        p: Vec4::W,
+        q: Vec4::X,
+        r: Vec4::Y,
+        s: Vec4::Z,
+        matrix_inverse: Mat4::IDENTITY,
+    };
+
     pub fn new(p: Vec4) -> Self {
         let p = p
             .try_normalize()
@@ -58,6 +66,14 @@ impl Projection {
         let sum = x + self.p;
         let projected = 2.0 * ((sum / self.p.dot(sum)) - self.p);
         (self.matrix_inverse * projected).truncate()
+    }
+
+    pub fn project_normal(self, at: Vec4, normal: Vec4) -> Vec3 {
+        let xp = at.dot(self.p) + 1.0;
+        let np = normal.dot(self.p);
+
+        let projected = normal * xp - np * (at + self.p);
+        (self.matrix_inverse * projected).truncate().normalize()
     }
 
     pub fn unproject_direction(self, direction: Vec3) -> Vec4 {

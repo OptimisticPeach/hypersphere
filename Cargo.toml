@@ -9,3 +9,4 @@ edition = "2021"
 glam = "0.24.0"
 hexasphere = "9.1.0"
 rand = "0.8.5"
+buttery = { path = "../../buttery" }
