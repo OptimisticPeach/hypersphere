@@ -1,11 +1,11 @@
 use crate::rotation::Rot4;
 use glam::{Vec3A, Vec4};
 
+pub mod camera;
 mod even_permutations;
 mod gram_schmidt;
 pub mod projection;
 pub mod rotation;
-pub mod camera;
 
 pub fn make_points() -> Vec<Vec4> {
     let mut points = Vec::new();
@@ -99,7 +99,13 @@ pub fn sphere_at(spherical_radius: f32, at: Vec4, points: &[Vec3A]) -> Vec<Vec4>
         .collect()
 }
 
-pub fn mesh_at(spherical_radius: f32, at: Vec4, points: &[Vec3A], normals: &[Vec3A], radii: &[f32]) -> (Vec<Vec4>, Vec<Vec4>) {
+pub fn mesh_at(
+    spherical_radius: f32,
+    at: Vec4,
+    points: &[Vec3A],
+    normals: &[Vec3A],
+    radii: &[f32],
+) -> (Vec<Vec4>, Vec<Vec4>) {
     let at = at.normalize();
     let rotation = Rot4::from_rotation_arc(Vec4::W, at);
     let points = points

@@ -1,5 +1,5 @@
-use buttery::Smoothed;
 use crate::rotation::Rot4;
+use buttery::Smoothed;
 
 /// Represents 4D rotation interpolation through [`slerp`](Rot4::slerp).
 pub struct Rotate4D;
