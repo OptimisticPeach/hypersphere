@@ -51,7 +51,7 @@ impl Projection {
     }
 
     pub fn from_orthonormal_basis(p: Vec4, q: Vec4, r: Vec4, s: Vec4) -> Self {
-        let mat = Mat4::from_cols(q, r, s, p).inverse();
+        let mat = Mat4::from_cols(q, r, s, p).transpose();
         Self {
             p,
             q,
