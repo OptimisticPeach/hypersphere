@@ -1,5 +1,5 @@
 use crate::rotation::Rot4;
-use glam::{Vec3A, Vec4};
+use glam::{Vec3, Vec3A, Vec4};
 
 pub mod camera;
 mod even_permutations;
@@ -102,8 +102,8 @@ pub fn sphere_at(spherical_radius: f32, at: Vec4, points: &[Vec3A]) -> Vec<Vec4>
 pub fn mesh_at(
     spherical_radius: f32,
     at: Vec4,
-    points: &[Vec3A],
-    normals: &[Vec3A],
+    points: &[Vec3],
+    normals: &[Vec3],
     radii: &[f32],
 ) -> (Vec<Vec4>, Vec<Vec4>) {
     let at = at.normalize();
