@@ -10,7 +10,7 @@ fn almost_eq(p: Vec4, q: Vec4) {
 }
 
 fn main() {
-    let pts = hypersphere::make_600_cell();
+    let mut pts = hypersphere::make_600_cell();
     println!("{}", pts.len());
     let dist = pts
         .iter()
@@ -25,6 +25,16 @@ fn main() {
         .max_by(|x, y| x.partial_cmp(y).unwrap())
         .map(|x| x.acos());
     println!("{:?}", dist);
+    let mut i = 0;
+    while i < pts.len() {
+        for j in ((i + 1)..pts.len()).rev() {
+            if pts[j] == pts[i] {
+                pts.remove(j);
+            }
+        }
+        i += 1;
+    }
+    println!("{:?}", pts.len());
     // let pts = (-7..=7).map(|x| x as f32)
     //     .flat_map(move |x| {
     //         (-7..=7).map(|x| x as f32)
