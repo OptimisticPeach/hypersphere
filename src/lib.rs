@@ -7,7 +7,7 @@ pub mod gram_schmidt;
 pub mod projection;
 pub mod rotation;
 
-pub fn make_points() -> Vec<Vec4> {
+pub fn make_600_cell() -> Vec<Vec4> {
     let mut points = Vec::new();
 
     points.extend_from_slice(&[
