@@ -1,5 +1,5 @@
 use crate::projection::Projection;
-use glam::{Quat, Vec4};
+use glam::{Mat4, Quat, Vec4};
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Rot4(Quat, Quat);
@@ -27,60 +27,32 @@ impl Rot4 {
         angle_ab: f32,
         angle_cd: f32,
     ) -> Self {
-        let [a, b, c, d] = [a, b, c, d].map(|x| Quat::from_vec4(Vec4::new(x.y, x.z, x.w, x.x)));
+        // if Mat4::from_cols(a, b, c, d).determinant() < 0.0 {
+        //     std::mem::swap(&mut c, &mut d);
+        // }
 
-        let left_inner = b * a.conjugate() * (angle_ab + angle_cd) / 2.0;
-        let right_inner = c.conjugate() * d * (angle_ab - angle_cd) / 2.0;
-
-        let left = quat_exp(left_inner).normalize();
-        let right = quat_exp(right_inner).normalize();
-
-        Rot4(left, right)
+        let orig_mat = Mat4::from_cols(a, b, c, d);
+        let (sin_ab, cos_ab) = angle_ab.sin_cos();
+        let (sin_cd, cos_cd) = angle_cd.sin_cos();
+        let rot_mat = Mat4::from_cols(
+            Vec4::new(cos_ab, sin_ab, 0.0, 0.0),
+            Vec4::new(-sin_ab, cos_ab, 0.0, 0.0),
+            Vec4::new(0.0, 0.0, cos_cd, sin_cd),
+            Vec4::new(0.0, 0.0, -sin_cd, cos_cd),
+        );
+        let prod_mat = orig_mat * rot_mat * orig_mat.transpose();
+        let (left, right) = factor_cayley(prod_mat);
+        Rot4(left.normalize(), right.normalize())
     }
     pub fn from_axes_angle(axis_1: Vec4, axis_2: Vec4, angle: f32) -> Option<Self> {
-        let mut axes = [axis_1, axis_2, Vec4::X, Vec4::Y, Vec4::Z, Vec4::W];
-        super::gram_schmidt::gram_schmidt(&mut axes);
-        if axes[1] == Vec4::ZERO {
-            return None;
-        }
-
-        for i in 2..axes.len() - 2 {
-            if axes[i] != Vec4::ZERO {
-                axes[2] = axes[i];
-                for j in i + 1..axes.len() - (i + 1) {
-                    if axes[j] != Vec4::ZERO {
-                        axes[3] = axes[j];
-                        break;
-                    }
-                }
-                break;
-            }
-        }
+        let [a, b, c, d] = crate::gram_schmidt::orthonormal_basis(axis_1, axis_2)?;
 
         Some(Self::from_orthonormal_basis(
-            axes[0], axes[1], axes[2], axes[3], angle, 0.0,
+            a, b, c, d, angle, 0.0,
         ))
     }
-    pub fn from_rotation_xy(angle: f32) -> Self {
-        Self::from_orthonormal_basis(Vec4::X, Vec4::Y, Vec4::Z, Vec4::W, angle, 0.0)
-    }
-    pub fn from_rotation_xz(angle: f32) -> Self {
-        Self::from_orthonormal_basis(Vec4::X, Vec4::Z, Vec4::Y, Vec4::W, angle, 0.0)
-    }
-    pub fn from_rotation_xw(angle: f32) -> Self {
-        Self::from_orthonormal_basis(Vec4::X, Vec4::W, Vec4::Z, Vec4::Y, angle, 0.0)
-    }
-    pub fn from_rotation_yz(angle: f32) -> Self {
-        Self::from_orthonormal_basis(Vec4::Y, Vec4::Z, Vec4::X, Vec4::W, angle, 0.0)
-    }
-    pub fn from_rotation_yw(angle: f32) -> Self {
-        Self::from_orthonormal_basis(Vec4::Y, Vec4::W, Vec4::X, Vec4::Z, angle, 0.0)
-    }
-    pub fn from_rotation_zw(angle: f32) -> Self {
-        Self::from_orthonormal_basis(Vec4::Z, Vec4::W, Vec4::X, Vec4::Y, angle, 0.0)
-    }
     pub fn from_rotation_arc(from: Vec4, to: Vec4) -> Self {
-        Self::from_axes_angle(from, to, from.dot(to).acos()).unwrap_or(Rot4::IDENTITY)
+        Self::from_axes_angle(from, to, from.normalize().dot(to.normalize()).acos()).unwrap_or(Rot4::IDENTITY)
     }
     pub fn inverse(self) -> Self {
         Self(self.0.inverse(), self.1.inverse())
@@ -110,14 +82,35 @@ impl Rot4 {
     }
     pub fn mul_rot4(self, rhs: Self) -> Self {
         Self(rhs.0 * self.0, self.1 * rhs.1)
+        // Self(rhs.0 * self.0, rhs.1 * self.1)
     }
     pub fn mul_proj(self, rhs: Projection) -> Projection {
         Projection::from_orthonormal_basis(
             self.mul_vec4(rhs.p),
-            self.mul_vec4(rhs.q),
-            self.mul_vec4(rhs.r),
-            self.mul_vec4(rhs.s),
+            self.mul_vec4(rhs.local_x),
+            self.mul_vec4(rhs.local_y),
+            self.mul_vec4(rhs.local_z),
         )
+    }
+
+
+    pub fn from_rotation_xy(angle: f32) -> Self {
+        Self::from_orthonormal_basis(Vec4::X, Vec4::Y, Vec4::Z, Vec4::W, angle, 0.0)
+    }
+    pub fn from_rotation_xz(angle: f32) -> Self {
+        Self::from_orthonormal_basis(Vec4::X, Vec4::Z, Vec4::Y, Vec4::W, angle, 0.0)
+    }
+    pub fn from_rotation_xw(angle: f32) -> Self {
+        Self::from_orthonormal_basis(Vec4::X, Vec4::W, Vec4::Z, Vec4::Y, angle, 0.0)
+    }
+    pub fn from_rotation_yz(angle: f32) -> Self {
+        Self::from_orthonormal_basis(Vec4::Y, Vec4::Z, Vec4::X, Vec4::W, angle, 0.0)
+    }
+    pub fn from_rotation_yw(angle: f32) -> Self {
+        Self::from_orthonormal_basis(Vec4::Y, Vec4::W, Vec4::X, Vec4::Z, angle, 0.0)
+    }
+    pub fn from_rotation_zw(angle: f32) -> Self {
+        Self::from_orthonormal_basis(Vec4::Z, Vec4::W, Vec4::X, Vec4::Y, angle, 0.0)
     }
 }
 
@@ -125,7 +118,70 @@ fn quat_exp(x: Quat) -> Quat {
     let a = x.w;
     let v = x.xyz();
     let len_v = v.length();
-    let norm = v / len_v;
+    let norm = v.normalize_or_zero();
     let (sin, cos) = len_v.sin_cos();
     Quat::from_xyzw(norm.x * sin, norm.y * sin, norm.z * sin, cos) * a.exp()
+}
+
+fn mat_new_rows(
+    a: f32, b: f32, c: f32, d: f32,
+    e: f32, f: f32, g: f32, h: f32,
+    i: f32, j: f32, k: f32, l: f32,
+    m: f32, n: f32, o: f32, p: f32,
+) -> Mat4 {
+    Mat4::from_cols(
+        Vec4::new(a, e, i, m),
+        Vec4::new(b, f, j, n),
+        Vec4::new(c, g, k, o),
+        Vec4::new(d, h, l, p),
+    )
+}
+
+// fn factor_isoclinic(m: Mat4) -> (Quat, Quat) {
+//     let a00 = m.x_axis.x;
+//     let a10 = m.x_axis.y;
+//     let a20 = m.x_axis.z;
+//     let a30 = m.x_axis.w;
+//     let a01 = m.y_axis.x;
+//     let a11 = m.y_axis.y;
+//     let a21 = m.y_axis.z;
+//     let a31 = m.y_axis.w;
+//     let a02 = m.z_axis.x;
+//     let a12 = m.z_axis.y;
+//     let a22 = m.z_axis.z;
+//     let a32 = m.z_axis.w;
+//     let a03 = m.w_axis.x;
+//     let a13 = m.w_axis.y;
+//     let a23 = m.w_axis.z;
+//     let a33 = m.w_axis.w;
+//
+//     let m = 0.25 * mat_new_rows(
+//         a00 + a11 + a22 + a33, a10 - a01 - a32 + a23, a20 + a31 - a02 - a13, a30 - a21 + a12 - a03,
+//         a10 - a01 + a32 - a23, -a00 - a11 + a22 + a33, a30 - a21 - a12 + a03, -a20 - a31 - a02 - a13,
+//         a20 - a31 - a02 + a13, -a30 - a21 - a12 - a03, -a00 + a11 - a22 + a33, a10 + a01 - a32 - a23,
+//         a30 + a21 - a12 - a03, a20 - a31 + a02 - a13, -a10 - a01 - a32 - a23, -a00 + a11 + a22 - a33,
+//     );
+//
+// }
+
+const A1: Mat4 = Mat4::from_cols(Vec4::W, Vec4::Z, Vec4::NEG_Y, Vec4::NEG_X);
+const A2: Mat4 = Mat4::from_cols(Vec4::NEG_Z, Vec4::W, Vec4::X, Vec4::NEG_Y);
+const A3: Mat4 = Mat4::from_cols(Vec4::Y, Vec4::NEG_X, Vec4::W, Vec4::NEG_Z);
+
+fn factor_cayley(m: Mat4) -> (Quat, Quat) {
+    let ma1 = m * A1;
+    let ma2 = m * A2;
+    let ma3 = m * A3;
+
+    let l0m = -m + A1 * ma1 + A2 * ma2 + A3 * ma3;
+    // let l1m = -0.25 * (ma1 + A1 * m + A3 * ma2 - A2 * ma3);
+    // let l2m = -0.25 * (ma2 + A2 * m + A1 * ma3 - A3 * ma1);
+    // let l3m = -0.25 * (ma3 + A3 * m + A2 * ma1 - A1 * ma2);
+    let rr = l0m * l0m.x_axis.length_recip();
+    // let rr = l0m * l0m.determinant().sqrt().sqrt().recip();
+    let rl = m * rr.transpose();
+    (
+        Quat::from_xyzw(rl.x_axis.y, rl.x_axis.z, rl.x_axis.w, rl.x_axis.x),
+        Quat::from_xyzw(rr.x_axis.y, rr.x_axis.z, rr.x_axis.w, rr.x_axis.x),
+    )
 }

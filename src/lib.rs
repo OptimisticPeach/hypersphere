@@ -3,7 +3,7 @@ use glam::{Vec3, Vec3A, Vec4};
 
 pub mod camera;
 mod even_permutations;
-mod gram_schmidt;
+pub mod gram_schmidt;
 pub mod projection;
 pub mod rotation;
 

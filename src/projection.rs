@@ -6,18 +6,18 @@ pub struct Projection {
     pub p: Vec4,
     // Three elements of the orthonormal basis for the tangent plane
     // of a point -- plane is centered at 0 rather than p.
-    pub q: Vec4,
-    pub r: Vec4,
-    pub s: Vec4,
+    pub local_x: Vec4,
+    pub local_y: Vec4,
+    pub local_z: Vec4,
     pub matrix_inverse: Mat4,
 }
 
 impl Projection {
     pub const UNIT_PROJECTION: Projection = Projection {
         p: Vec4::W,
-        q: Vec4::X,
-        r: Vec4::Y,
-        s: Vec4::Z,
+        local_x: Vec4::X,
+        local_y: Vec4::Y,
+        local_z: Vec4::Z,
         matrix_inverse: Mat4::IDENTITY,
     };
 
@@ -54,9 +54,9 @@ impl Projection {
         let mat = Mat4::from_cols(q, r, s, p).transpose();
         Self {
             p,
-            q,
-            r,
-            s,
+            local_x: q,
+            local_y: r,
+            local_z: s,
             matrix_inverse: mat,
         }
     }
@@ -77,10 +77,10 @@ impl Projection {
     }
 
     pub fn unproject_direction(self, direction: Vec3) -> Vec4 {
-        direction.x * self.q + direction.y * self.r + direction.z * self.s
+        direction.x * self.local_x + direction.y * self.local_y + direction.z * self.local_z
     }
 
     pub fn place_in_tangent_space(self, value: Vec3) -> Vec4 {
-        (value.x * self.q + value.y * self.r + value.z * self.s + self.p).normalize()
+        (value.x * self.local_x + value.y * self.local_y + value.z * self.local_z + self.p).normalize()
     }
 }
