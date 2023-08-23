@@ -22,31 +22,9 @@ impl Projection {
     };
 
     pub fn new(p: Vec4) -> Self {
-        let p = p
-            .try_normalize()
+        let [p, q, r, s] = crate::basis::make_orthonormal_basis(p, Vec4::X)
+            .or_else(|| crate::basis::make_orthonormal_basis(p, Vec4::Y))
             .expect("Center of projection cannot be zero.");
-        let mut axes = [p, Vec4::X, Vec4::Y, Vec4::Z, Vec4::W];
-        super::gram_schmidt::gram_schmidt(&mut axes);
-
-        for i in 1..axes.len() - 1 {
-            if axes[i] != Vec4::ZERO {
-                axes[1] = axes[i];
-                for j in i + 1..axes.len() - (i + 1) {
-                    if axes[j] != Vec4::ZERO {
-                        axes[2] = axes[j];
-                        for k in j + 1..axes.len() - (j + 1) {
-                            if axes[k] != Vec4::ZERO {
-                                axes[3] = axes[k];
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-        let [p, q, r, s, ..] = axes;
         Self::from_orthonormal_basis(p, q, r, s)
     }
 

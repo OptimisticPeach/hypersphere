@@ -1,6 +1,6 @@
 // Credit: https://www.qfbox.info/epermute
 /// Computes the even permutations of `values`.
-pub fn even_permutations<T: PartialOrd>(values: &mut [T], mut inspector: impl FnMut(&[T])) {
+pub(crate) fn even_permutations<T: PartialOrd>(values: &mut [T], mut inspector: impl FnMut(&[T])) {
     let mut parity_flip = false;
 
     values.sort_by(|x, y| x.partial_cmp(y).unwrap());
