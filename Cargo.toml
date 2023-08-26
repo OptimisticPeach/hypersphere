@@ -1,6 +1,6 @@
 [package]
 name = "hypersphere"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Patrik Buhring <patrikbuhring@gmail.com>"]
 edition = "2021"
 description = "Simple 4D primitives for rotation and projection."

@@ -1,8 +1,10 @@
 use glam::Vec4;
 
-/// Creates the vertices of the 600 Cell aka the Hexacosichoron.
+/// Creates the vertices of the 600 Cell.
 ///
 /// Useful as a set of interesting debugging vertices.
+///
+/// This shape is also known sometimes as the hexachosichoron.
 pub fn make_600_cell() -> Vec<Vec4> {
     let mut points = Vec::new();
 
