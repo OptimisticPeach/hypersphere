@@ -66,8 +66,9 @@ impl Projection {
     /// - `x(t) = (at + t * normal).normalize()` is a spherical line segment for `t > 0`
     /// - `x(t)` intersects `K` at an angle `alpha`
     /// - `n'` is `self.project_normal(at, normal)`
+    ///
     /// Then:
-    /// - `y(t) = at' + t * n` intersects `K'` at an angle `alpha`.
+    /// - `y(t) = at' + t * n'` intersects `K'` at an angle `alpha`.
     ///
     /// This is meaningful because it means that normal vectors remain normal vectors.
     pub fn project_normal(self, at: Vec4, normal: Vec4) -> Vec3 {
