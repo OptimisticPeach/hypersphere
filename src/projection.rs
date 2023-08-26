@@ -1,6 +1,6 @@
 use glam::{Mat4, Vec3, Vec4};
 
-/// A stereographic projection.
+/// A `4D -> 3D` stereographic projection from `S3 -> R3`.
 #[derive(Copy, Clone, Debug)]
 pub struct Projection {
     /// Center of projection

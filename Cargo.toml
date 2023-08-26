@@ -1,12 +1,13 @@
 [package]
 name = "hypersphere"
 version = "0.1.0"
+authors = ["Patrik Buhring <patrikbuhring@gmail.com>"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Simple 4D primitives for rotation and projection."
+repository = "https://github.com/OptimisticPeach/hypersphere"
+license = "MIT OR Apache-2.0"
+keywords = ["graphics", "4d", "projection", "sphere", "math"]
+categories = ["algorithms", "graphics", "mathematics"]
 
 [dependencies]
 glam = "0.24.0"
-hexasphere = "9.1.0"
-rand = "0.8.5"
-buttery = { path = "../../buttery" }
