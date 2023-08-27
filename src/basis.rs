@@ -53,10 +53,14 @@ pub fn any_orthogonal_vector_to_vector(v: Vec4) -> Vec4 {
 /// [`Vec4::ZERO`].
 pub fn cross_4d(u: Vec4, v: Vec4, w: Vec4) -> Vec4 {
     Vec4::new(
-        -u.w * v.z * w.y + u.z * v.w * w.y + u.w * v.y * w.z - u.y * v.w * w.z - u.z * v.y * w.w + u.y * v.z * w.w,
-        u.w * v.z * w.x - u.z * v.w * w.x - u.w * v.x * w.z + u.x * v.w * w.z + u.z * v.x * w.w - u.x * v.z * w.w,
-        -u.w * v.y * w.x + u.y * v.w * w.x + u.w * v.x * w.y - u.x * v.w * w.y - u.y * v.x * w.w + u.x * v.y * w.w,
-        u.z * v.y * w.x - u.y * v.z * w.x - u.z * v.x * w.y + u.x * v.z * w.y + u.y * v.x * w.z - u.x * v.y * w.z,
+        -u.w * v.z * w.y + u.z * v.w * w.y + u.w * v.y * w.z - u.y * v.w * w.z - u.z * v.y * w.w
+            + u.y * v.z * w.w,
+        u.w * v.z * w.x - u.z * v.w * w.x - u.w * v.x * w.z + u.x * v.w * w.z + u.z * v.x * w.w
+            - u.x * v.z * w.w,
+        -u.w * v.y * w.x + u.y * v.w * w.x + u.w * v.x * w.y - u.x * v.w * w.y - u.y * v.x * w.w
+            + u.x * v.y * w.w,
+        u.z * v.y * w.x - u.y * v.z * w.x - u.z * v.x * w.y + u.x * v.z * w.y + u.y * v.x * w.z
+            - u.x * v.y * w.z,
     )
 }
 

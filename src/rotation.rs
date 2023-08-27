@@ -47,7 +47,11 @@ impl Rot4 {
         let orig_mat = Mat4::from_cols(a, b, c, d);
         let (sin_ab, cos_ab) = angle_ab.sin_cos();
         // often this is called with angle_cd = 0.0.
-        let (sin_cd, cos_cd) = if angle_cd == 0.0 { (0.0, 1.0) } else { angle_cd.sin_cos() };
+        let (sin_cd, cos_cd) = if angle_cd == 0.0 {
+            (0.0, 1.0)
+        } else {
+            angle_cd.sin_cos()
+        };
         let rot_mat = Mat4::from_cols(
             Vec4::new(cos_ab, sin_ab, 0.0, 0.0),
             Vec4::new(-sin_ab, cos_ab, 0.0, 0.0),
@@ -65,9 +69,7 @@ impl Rot4 {
     pub fn from_axes_angle(axis_1: Vec4, axis_2: Vec4, angle: f32) -> Option<Self> {
         let [a, b, c, d] = crate::basis::make_orthonormal_basis(axis_1, axis_2)?;
 
-        Some(Self::from_double_planar_rotation(
-            a, b, c, d, angle, 0.0,
-        ))
+        Some(Self::from_double_planar_rotation(a, b, c, d, angle, 0.0))
     }
 
     /// Constructs a minimal rotation which rotates `from` to `to`.
@@ -80,9 +82,7 @@ impl Rot4 {
 
         let angle = a.dot(to.normalize()).acos();
 
-        Self::from_double_planar_rotation(
-            a, b, c, d, angle, 0.0,
-        )
+        Self::from_double_planar_rotation(a, b, c, d, angle, 0.0)
     }
 
     /// Factors a rotation matrix into a `Rot4`.
